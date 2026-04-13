@@ -35,8 +35,7 @@
       "expo-secure-store",
       "expo-notifications",
       "expo-local-authentication",
-      "expo-navigation-bar",
-      "expo-clipboard"
+      "expo-navigation-bar"
     ],
     "extra": {
       "eas": {
