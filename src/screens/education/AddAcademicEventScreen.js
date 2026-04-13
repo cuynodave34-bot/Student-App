@@ -3,23 +3,25 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   Alert,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { COLORS, FONTS, SPACING, RADIUS } from '../../constants/theme';
 import { EVENT_TYPES, REMINDER_PRESETS } from '../../constants/theme';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 export default function AddAcademicEventScreen({ navigation, route }) {
   const { user } = useAuth();
   const editing = route.params?.event;
+  const { scheduleNotification, cancelNotification } = useNotifications();
 
   const [title, setTitle] = useState(editing?.title || '');
   const [eventType, setEventType] = useState(editing?.event_type || 'quiz');
@@ -68,7 +70,25 @@ export default function AddAcademicEventScreen({ navigation, route }) {
 
     setLoading(false);
     if (error) Alert.alert('Error', error.message);
-    else navigation.goBack();
+    else {
+      // Schedule notification
+      const entityId = editing ? editing.id : payload.title;
+      if (editing) await cancelNotification(`event_${editing.id}`);
+      if (eventDate) {
+        const baseTime = eventTime
+          ? new Date(`${eventDate}T${eventTime}:00`)
+          : new Date(`${eventDate}T08:00:00`);
+        baseTime.setMinutes(baseTime.getMinutes() - (parseInt(reminderMinutes) || 60));
+        const subjectName = subjects.find(s => s.id === subjectId)?.name;
+        await scheduleNotification(
+          `event_${editing?.id || Date.now()}`,
+          `📚 ${eventType.charAt(0).toUpperCase() + eventType.slice(1)}: ${title.trim()}`,
+          subjectName ? `${subjectName}` : 'Upcoming event',
+          baseTime
+        );
+      }
+      navigation.goBack();
+    }
   };
 
   return (

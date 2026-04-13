@@ -296,3 +296,74 @@ CREATE POLICY "Users manage own subtasks"
 
 CREATE INDEX idx_task_subtasks_task ON public.task_subtasks(task_id);
 CREATE INDEX idx_task_subtasks_user ON public.task_subtasks(user_id);
+
+-- ============================================
+-- 12. GRADES (per-subject grade tracking)
+-- ============================================
+CREATE TABLE public.grades (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  subject_id UUID NOT NULL REFERENCES public.subjects(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  grade_type TEXT DEFAULT 'assignment'
+    CHECK (grade_type IN ('quiz', 'exam', 'assignment', 'project', 'recitation', 'other')),
+  score NUMERIC(8,2) NOT NULL CHECK (score >= 0),
+  max_score NUMERIC(8,2) NOT NULL CHECK (max_score > 0),
+  weight NUMERIC(5,2) DEFAULT 1.0 CHECK (weight > 0),
+  date DATE,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.grades ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users manage own grades"
+  ON public.grades FOR ALL USING (auth.uid() = user_id);
+
+CREATE INDEX idx_grades_user ON public.grades(user_id);
+CREATE INDEX idx_grades_subject ON public.grades(subject_id);
+
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.grades FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+-- ============================================
+-- 13. RESOURCES (course materials / bookmarks)
+-- ============================================
+CREATE TABLE public.resources (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  subject_id UUID REFERENCES public.subjects(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  url TEXT,
+  resource_type TEXT DEFAULT 'link'
+    CHECK (resource_type IN ('link', 'video', 'document', 'image', 'other')),
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.resources ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users manage own resources"
+  ON public.resources FOR ALL USING (auth.uid() = user_id);
+
+CREATE INDEX idx_resources_user ON public.resources(user_id);
+CREATE INDEX idx_resources_subject ON public.resources(subject_id);
+
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.resources FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+-- ============================================
+-- 14. PUSH TOKENS (notification device tokens)
+-- ============================================
+CREATE TABLE public.push_tokens (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  expo_push_token TEXT NOT NULL,
+  device_name TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, expo_push_token)
+);
+
+ALTER TABLE public.push_tokens ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users manage own push tokens"
+  ON public.push_tokens FOR ALL USING (auth.uid() = user_id);
+
+CREATE INDEX idx_push_tokens_user ON public.push_tokens(user_id);

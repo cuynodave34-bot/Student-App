@@ -4,10 +4,10 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Card from '../../components/Card';
 import QuickAddButton from '../../components/QuickAddButton';
@@ -29,6 +29,7 @@ export default function DashboardScreen({ navigation }) {
   const [monthSpent, setMonthSpent] = useState(0);
   const [monthBudget, setMonthBudget] = useState(0);
   const [savingsProgress, setSavingsProgress] = useState(null);
+  const [recentGrades, setRecentGrades] = useState([]);
 
   const today = new Date();
   const dayOfWeek = today.getDay();
@@ -53,6 +54,7 @@ export default function DashboardScreen({ navigation }) {
       monthExpRes,
       budgetRes,
       savingsRes,
+      gradesRes,
     ] = await Promise.all([
       // Next class today
       supabase
@@ -124,6 +126,13 @@ export default function DashboardScreen({ navigation }) {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1),
+      // Recent grades
+      supabase
+        .from('grades')
+        .select('*, subjects(name, color)')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(3),
     ]);
 
     setNextClass(classRes.data?.[0] ?? null);
@@ -145,6 +154,7 @@ export default function DashboardScreen({ navigation }) {
     );
     setMonthBudget(totalBudget);
     setSavingsProgress(savingsRes.data?.[0] ?? null);
+    setRecentGrades(gradesRes.data ?? []);
   }, [user]);
 
   useEffect(() => {
@@ -438,6 +448,29 @@ export default function DashboardScreen({ navigation }) {
           </Card>
         )}
 
+        {/* Recent Grades */}
+        {recentGrades.length > 0 && (
+          <Card
+            title="Recent Grades"
+            icon="school-outline"
+            iconColor={COLORS.success}
+            onPress={() => navigation.navigate('Education', { screen: 'Grades' })}
+            rightAction={<Text style={styles.viewAll}>View all</Text>}
+          >
+            {recentGrades.map((g) => {
+              const pct = ((Number(g.score) / Number(g.max_score)) * 100).toFixed(1);
+              const pctColor = pct >= 90 ? COLORS.success : pct >= 75 ? COLORS.warning : COLORS.danger;
+              return (
+                <View key={g.id} style={styles.gradeRow}>
+                  <View style={[styles.colorDot, { backgroundColor: g.subjects?.color || COLORS.primary }]} />
+                  <Text style={styles.gradeItemTitle} numberOfLines={1}>{g.title}</Text>
+                  <Text style={[styles.gradePct, { color: pctColor }]}>{pct}%</Text>
+                </View>
+              );
+            })}
+          </Card>
+        )}
+
         <View style={{ height: SPACING.xxxl * 2 }} />
       </ScrollView>
     </SafeAreaView>
@@ -559,4 +592,12 @@ const styles = StyleSheet.create({
   savingsName: { fontSize: FONTS.sizes.lg, fontWeight: '600', color: COLORS.textPrimary },
   savingsAmount: { fontSize: FONTS.sizes.sm, color: COLORS.textSecondary, marginVertical: SPACING.xs },
   viewAll: { fontSize: FONTS.sizes.sm, color: COLORS.primary, fontWeight: '600' },
+  gradeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    paddingVertical: SPACING.xs,
+  },
+  gradeItemTitle: { flex: 1, fontSize: FONTS.sizes.md, color: COLORS.textPrimary },
+  gradePct: { fontSize: FONTS.sizes.md, fontWeight: '700' },
 });

@@ -3,13 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   Alert,
   Switch,
   Share,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -22,10 +22,12 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import { COLORS, FONTS, SPACING, RADIUS, ACCENT_COLORS } from '../../constants/theme';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 export default function SettingsScreen({ navigation }) {
   const { profile, user, signOut, updateProfile } = useAuth();
   const { isDark, toggleTheme, colors } = useTheme();
+  const { cancelAllNotifications, rescheduleUpcoming } = useNotifications();
 
   const [fullName, setFullName] = useState(profile?.full_name || '');
   const [university, setUniversity] = useState(profile?.university || '');
@@ -160,9 +162,25 @@ export default function SettingsScreen({ navigation }) {
         </Card>
 
         <Card title="App" icon="settings-outline" iconColor={COLORS.info}>
-          <SettingsRow icon="notifications-outline" label="Notifications" value="Enabled" />
-          <SettingsRow icon="cash-outline" label="Currency" value={profile?.currency || '₱'} />
-          <SettingsRow icon="information-circle-outline" label="Version" value="1.1.0" />
+          <View style={styles.settingsRow}>
+            <Ionicons name="notifications-outline" size={20} color={COLORS.textSecondary} />
+            <Text style={styles.settingsLabel}>Push Notifications</Text>
+            <Switch
+              value={profile?.notification_enabled !== false}
+              onValueChange={async (value) => {
+                await updateProfile({ notification_enabled: value });
+                if (!value) {
+                  await cancelAllNotifications();
+                } else {
+                  await rescheduleUpcoming();
+                }
+              }}
+              trackColor={{ false: COLORS.border, true: `${COLORS.primary}60` }}
+              thumbColor={profile?.notification_enabled !== false ? COLORS.primary : COLORS.textLight}
+            />
+          </View>
+          <SettingsRow icon="cash-outline" label="Currency" value={profile?.currency || '\u20b1'} />
+          <SettingsRow icon="information-circle-outline" label="Version" value="1.5.0" />
         </Card>
 
         {/* Export Data */}
@@ -192,6 +210,15 @@ export default function SettingsScreen({ navigation }) {
           >
             <Ionicons name="document-text-outline" size={20} color={COLORS.textSecondary} />
             <Text style={styles.settingsLabel}>Export Notes</Text>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.textLight} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.settingsRow}
+            onPress={() => exportCSV('grades', 'grades.csv', ['id','title','grade_type','score','max_score','weight','date'])}
+            disabled={exporting}
+          >
+            <Ionicons name="school-outline" size={20} color={COLORS.textSecondary} />
+            <Text style={styles.settingsLabel}>Export Grades</Text>
             <Ionicons name="chevron-forward" size={18} color={COLORS.textLight} />
           </TouchableOpacity>
         </Card>

@@ -17,8 +17,10 @@ import { FONTS, SPACING, RADIUS, SHADOWS } from '../constants/theme';
 const ACTIONS = [
   { key: 'task', icon: 'checkbox-outline', label: 'New Task', route: 'Education', screen: 'AddTask', color: '#6C63FF' },
   { key: 'event', icon: 'calendar-outline', label: 'Quiz / Event', route: 'Education', screen: 'AddAcademicEvent', color: '#F39C12' },
+  { key: 'grade', icon: 'school-outline', label: 'Add Grade', route: 'Education', screen: 'AddGrade', color: '#2ECC71' },
   { key: 'expense', icon: 'cash-outline', label: 'Expense', route: 'Finance', screen: 'AddTransaction', color: '#E74C3C' },
   { key: 'note', icon: 'document-text-outline', label: 'Quick Note', route: 'Education', screen: 'AddNote', color: '#4ECDC4' },
+  { key: 'resource', icon: 'bookmark-outline', label: 'Resource', route: 'Education', screen: 'AddResource', color: '#9B59B6' },
   { key: 'reminder', icon: 'notifications-outline', label: 'Reminder', route: 'Finance', screen: 'AddBillReminder', color: '#3498DB' },
 ];
 

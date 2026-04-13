@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   Alert,
   TouchableOpacity,
@@ -11,6 +10,7 @@ import {
   Platform,
   TextInput,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
@@ -18,10 +18,12 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { COLORS, FONTS, SPACING, RADIUS } from '../../constants/theme';
 import { TASK_TYPES, PRIORITY_LEVELS } from '../../constants/theme';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 export default function AddTaskScreen({ navigation, route }) {
   const { user } = useAuth();
   const editing = route.params?.task;
+  const { scheduleNotification, cancelNotification } = useNotifications();
 
   const [title, setTitle] = useState(editing?.title || '');
   const [description, setDescription] = useState(editing?.description || '');
@@ -108,7 +110,25 @@ export default function AddTaskScreen({ navigation, route }) {
 
     setLoading(false);
     if (error) Alert.alert('Error', error.message);
-    else navigation.goBack();
+    else {
+      // Schedule notification
+      if (editing) await cancelNotification(`task_${editing.id}`);
+      if (dueDate) {
+        const taskId = editing?.id || Date.now();
+        const triggerTime = dueTime
+          ? new Date(`${dueDate}T${dueTime}:00`)
+          : new Date(`${dueDate}T09:00:00`);
+        triggerTime.setHours(triggerTime.getHours() - 1);
+        const subjectName = subjects.find(s => s.id === subjectId)?.name;
+        await scheduleNotification(
+          `task_${taskId}`,
+          `\ud83d\udccb Task Due: ${title.trim()}`,
+          subjectName ? `${subjectName} \u2014 ${priority} priority` : `${priority} priority`,
+          triggerTime
+        );
+      }
+      navigation.goBack();
+    }
   };
 
   return (

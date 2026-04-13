@@ -3,24 +3,26 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   Alert,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { COLORS, FONTS, SPACING, RADIUS } from '../../constants/theme';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 const BILL_CATEGORIES = ['tuition', 'school fees', 'subscription', 'transport', 'bills', 'rent', 'other'];
 
 export default function AddBillReminderScreen({ navigation, route }) {
   const { user } = useAuth();
   const editing = route.params?.reminder;
+  const { scheduleNotification, cancelNotification } = useNotifications();
 
   const [title, setTitle] = useState(editing?.title || '');
   const [amount, setAmount] = useState(editing?.amount ? String(editing.amount) : '');
@@ -66,7 +68,20 @@ export default function AddBillReminderScreen({ navigation, route }) {
 
     setLoading(false);
     if (error) Alert.alert('Error', error.message);
-    else navigation.goBack();
+    else {
+      // Schedule notification
+      if (editing) await cancelNotification(`bill_${editing.id}`);
+      if (dueDate) {
+        const billId = editing?.id || Date.now();
+        await scheduleNotification(
+          `bill_${billId}`,
+          `\ud83d\udcb0 Bill Due: ${title.trim()}`,
+          amount ? `\u20b1${Number(amount).toLocaleString()}` : category || 'Payment due today',
+          new Date(`${dueDate}T09:00:00`)
+        );
+      }
+      navigation.goBack();
+    }
   };
 
   return (

@@ -226,3 +226,22 @@ export const CALENDAR_LEGEND = [
   { label: 'Events', color: COLORS.calendarEvent },
   { label: 'Bills', color: COLORS.calendarBill },
 ];
+
+// Grade types for grade tracker
+export const GRADE_TYPES = [
+  { key: 'quiz', label: 'Quiz' },
+  { key: 'exam', label: 'Exam' },
+  { key: 'assignment', label: 'Assignment' },
+  { key: 'project', label: 'Project' },
+  { key: 'recitation', label: 'Recitation' },
+  { key: 'other', label: 'Other' },
+];
+
+// Resource types for resource library
+export const RESOURCE_TYPES = [
+  { key: 'link', label: 'Link', icon: 'link-outline' },
+  { key: 'video', label: 'Video', icon: 'videocam-outline' },
+  { key: 'document', label: 'Document', icon: 'document-outline' },
+  { key: 'image', label: 'Image', icon: 'image-outline' },
+  { key: 'other', label: 'Other', icon: 'ellipsis-horizontal-outline' },
+];

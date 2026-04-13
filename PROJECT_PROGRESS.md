@@ -12,6 +12,8 @@
 - **Gestures:** react-native-gesture-handler (swipe-to-delete)
 - **Network:** @react-native-community/netinfo (offline detection)
 - **File I/O:** expo-file-system, expo-sharing (CSV export)
+- **Notifications:** expo-notifications (local push notifications)
+- **Clipboard:** expo-clipboard (copy URLs)
 - **Security:** expo-local-authentication (biometric lock)
 
 ---
@@ -22,7 +24,7 @@
 StudentLifeOrganizer/
 ├── App.js                          ✅
 ├── supabase/
-│   └── schema.sql                  ✅  (10 tables, RLS, triggers, indexes)
+│   └── schema.sql                  ✅  (14 tables, RLS, triggers, indexes)
 └── src/
     ├── lib/
     │   └── supabase.js             ✅
@@ -32,7 +34,8 @@ StudentLifeOrganizer/
     │   ├── AuthContext.js           ✅
     │   ├── ThemeContext.js          ✅  (dark mode with AsyncStorage persistence)
     │   ├── ToastContext.js          ✅  (app-wide toast notifications)
-    │   └── OfflineContext.js        ✅  (NetInfo detection, offline queue, sync banner)
+    │   ├── OfflineContext.js        ✅  (NetInfo detection, offline queue, sync banner)
+    │   └── NotificationContext.js   ✅  (push notifications, local scheduling)
     ├── components/
     │   ├── Button.js               ✅  (accessibility labels)
     │   ├── Input.js                ✅
@@ -49,7 +52,7 @@ StudentLifeOrganizer/
     │   ├── RootNavigator.js        ✅  (biometric lock gate)
     │   ├── AuthNavigator.js        ✅  (onboarding flow)
     │   ├── MainNavigator.js        ✅  (bottom tabs)
-    │   ├── EducationNavigator.js   ✅  (top tabs + GPA + Timer)
+    │   ├── EducationNavigator.js   ✅  (top tabs + GPA + Timer + Grades + Resources)
     │   └── FinanceNavigator.js     ✅  (top tabs + stack)
     └── screens/
         ├── auth/
@@ -66,15 +69,19 @@ StudentLifeOrganizer/
         ├── education/
         │   ├── SubjectsScreen.js   ✅  (search + status filter)
         │   ├── AddSubjectScreen.js ✅  (accent colors + archive status)
-        │   ├── SubjectDetailScreen.js ✅
+        │   ├── SubjectDetailScreen.js ✅  (grades, resources, grade calculator)
         │   ├── TasksScreen.js      ✅  (search, subtask progress, haptics)
-        │   ├── AddTaskScreen.js    ✅  (subtask checklists, validation)
+        │   ├── AddTaskScreen.js    ✅  (subtask checklists, validation, notifications)
         │   ├── AcademicEventsScreen.js ✅
-        │   ├── AddAcademicEventScreen.js ✅
+        │   ├── AddAcademicEventScreen.js ✅  (notifications on save)
         │   ├── ScheduleScreen.js   ✅
         │   ├── AddScheduleScreen.js ✅
         │   ├── NotesScreen.js      ✅  (search)
         │   ├── AddNoteScreen.js    ✅  (formatting toolbar)
+        │   ├── GradesScreen.js     ✅  (weighted average, subject filter, search)
+        │   ├── AddGradeScreen.js   ✅  (score/max validation, type chips)
+        │   ├── ResourcesScreen.js  ✅  (tap-to-open, long-press copy, subject filter)
+        │   ├── AddResourceScreen.js ✅  (URL auto-detect type)
         │   ├── GPACalculatorScreen.js ✅  (weighted GPA with grade chips)
         │   └── StudyTimerScreen.js ✅  (Pomodoro timer with haptics)
         └── finance/
@@ -85,7 +92,7 @@ StudentLifeOrganizer/
             ├── GoalsScreen.js            ✅
             ├── AddGoalScreen.js          ✅  (amount/date validation)
             ├── BillsRemindersScreen.js   ✅  (haptics on toggle)
-            └── AddBillReminderScreen.js  ✅  (recurrence interval)
+            ├── AddBillReminderScreen.js  ✅  (recurrence interval, notifications)
 ```
 
 ---
@@ -105,6 +112,9 @@ StudentLifeOrganizer/
 | 9 | savings_goals | ✅ | ✅ |
 | 10 | payment_reminders | ✅ | ✅ |
 | 11 | task_subtasks | ✅ | ✅ |
+| 12 | grades | ✅ | ✅ |
+| 13 | resources | ✅ | ✅ |
+| 14 | push_tokens | ✅ | ✅ |
 
 ---
 
@@ -123,13 +133,13 @@ RootNavigator (theme-aware NavigationContainer + biometric lock)
 └── (session) → MainNavigator (bottom tabs + FloatingActionButton)
     ├── Home → DashboardScreen (overdue banner, countdown cards, budget %)
     ├── Edu → EducationNavigator
-    │   ├── [Top Tabs] Subjects | Tasks | Events | Schedule | Notes | GPA | Timer
-    │   └── [Stack] AddSubject, SubjectDetail, AddTask, AddAcademicEvent, AddSchedule, AddNote, GPACalculator, StudyTimer
+    │   ├── [Top Tabs] Subjects | Tasks | Events | Schedule | Notes | Grades | Resources | GPA | Timer
+    │   └── [Stack] AddSubject, SubjectDetail, AddTask, AddAcademicEvent, AddSchedule, AddNote, AddGrade, AddResource, GPACalculator, StudyTimer
     ├── Finance → FinanceNavigator
     │   ├── [Top Tabs] Overview | Transactions | Budget | Goals | Bills
     │   └── [Stack] AddTransaction, AddGoal, AddBillReminder
     ├── Calendar → CalendarScreen (color legend, today button)
-    └── Settings → SettingsScreen (dark mode, biometric lock, CSV export)
+    └── Settings → SettingsScreen (dark mode, biometric lock, notifications, CSV export)
 ```
 
 ---
@@ -241,3 +251,33 @@ Next steps: connect Supabase credentials, run on device, and iterate on UX.
 - `expo-file-system` — Write CSV files to cache
 - `expo-sharing` — Share/export CSV files
 - `expo-local-authentication` — Biometric (fingerprint/face) authentication
+
+---
+
+## v1.5 — Grade Tracker, Push Notifications & Resource Library (Wave 5) ✅
+
+| Feature | Files Changed | Status |
+|---------|---------------|--------|
+| **Grade Tracker** | GradesScreen.js (new), AddGradeScreen.js (new), SubjectDetailScreen.js (grades section + "what grade do I need?" calculator), EducationNavigator.js (Grades tab + stack), DashboardScreen.js (recent grades card), SettingsScreen.js (grades CSV export) | ✅ |
+| **Push Notifications** | NotificationContext.js (new), App.js (provider wrap), AddAcademicEventScreen.js (schedule on save), AddTaskScreen.js (schedule on save), AddBillReminderScreen.js (schedule on save), SettingsScreen.js (notification toggle with cancel/reschedule) | ✅ |
+| **Resource Library** | ResourcesScreen.js (new), AddResourceScreen.js (new), SubjectDetailScreen.js (resources section), EducationNavigator.js (Resources tab + stack) | ✅ |
+| **FAB Expansion** | FloatingActionButton.js (added Grade + Resource quick-add actions — now 7 actions) | ✅ |
+
+### New Files (Wave 5)
+- `src/contexts/NotificationContext.js` — Push notification permissions, token registration, local scheduling, cancellation, reschedule helpers
+- `src/screens/education/GradesScreen.js` — Grade list with weighted average summary, subject chip filter, search, SwipeableRow
+- `src/screens/education/AddGradeScreen.js` — Add/edit grade form with type chips, subject picker, score validation, percentage preview
+- `src/screens/education/ResourcesScreen.js` — Resource list with tap-to-open URL, long-press copy, subject filter, search
+- `src/screens/education/AddResourceScreen.js` — Add/edit resource with URL auto-detect type (YouTube → video, Google Docs → document)
+
+### Schema Changes (Wave 5)
+- `grades` table — id, user_id, subject_id, title, grade_type, score, max_score, weight, date, notes (RLS, cascade delete)
+- `resources` table — id, user_id, subject_id, title, url, resource_type, description (RLS, SET NULL on subject delete)
+- `push_tokens` table — id, user_id, expo_push_token, device_name (RLS, unique constraint)
+
+### New Constants (Wave 5)
+- `GRADE_TYPES` — quiz, exam, assignment, project, recitation, other
+- `RESOURCE_TYPES` — link, video, document, image, other (with Ionicons)
+
+### New Dependencies (Wave 5)
+- `expo-clipboard` — Copy resource URLs to clipboard

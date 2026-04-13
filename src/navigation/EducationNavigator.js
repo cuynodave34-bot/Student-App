@@ -15,6 +15,10 @@ import ScheduleScreen from '../screens/education/ScheduleScreen';
 import AddScheduleScreen from '../screens/education/AddScheduleScreen';
 import NotesScreen from '../screens/education/NotesScreen';
 import AddNoteScreen from '../screens/education/AddNoteScreen';
+import GradesScreen from '../screens/education/GradesScreen';
+import AddGradeScreen from '../screens/education/AddGradeScreen';
+import ResourcesScreen from '../screens/education/ResourcesScreen';
+import AddResourceScreen from '../screens/education/AddResourceScreen';
 import GPACalculatorScreen from '../screens/education/GPACalculatorScreen';
 import StudyTimerScreen from '../screens/education/StudyTimerScreen';
 
@@ -39,6 +43,8 @@ function EducationTabs() {
       <Tab.Screen name="AcademicEvents" component={AcademicEventsScreen} options={{ title: 'Events' }} />
       <Tab.Screen name="Schedule" component={ScheduleScreen} />
       <Tab.Screen name="Notes" component={NotesScreen} />
+      <Tab.Screen name="Grades" component={GradesScreen} />
+      <Tab.Screen name="Resources" component={ResourcesScreen} />
       <Tab.Screen name="GPA" component={GPACalculatorScreen} />
       <Tab.Screen name="Timer" component={StudyTimerScreen} />
     </Tab.Navigator>
@@ -65,6 +71,8 @@ export default function EducationNavigator() {
       <Stack.Screen name="AddAcademicEvent" component={AddAcademicEventScreen} options={{ title: 'Event' }} />
       <Stack.Screen name="AddSchedule" component={AddScheduleScreen} options={{ title: 'Schedule' }} />
       <Stack.Screen name="AddNote" component={AddNoteScreen} options={{ title: 'Note' }} />
+      <Stack.Screen name="AddGrade" component={AddGradeScreen} options={{ title: 'Grade' }} />
+      <Stack.Screen name="AddResource" component={AddResourceScreen} options={{ title: 'Resource' }} />
       <Stack.Screen name="GPACalculator" component={GPACalculatorScreen} options={{ title: 'GPA Calculator' }} />
       <Stack.Screen name="StudyTimer" component={StudyTimerScreen} options={{ title: 'Study Timer' }} />
     </Stack.Navigator>
