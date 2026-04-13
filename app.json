@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "StudentLifeOrganizer",
-    "slug": "StudentLifeOrganizer",
+    "slug": "curious-student",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,6 +16,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.dcos20.studentlifeorganizer",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -32,6 +33,12 @@
     "plugins": [
       "expo-font",
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a842bb21-b954-49d0-8846-5c75df27867a"
+      }
+    },
+    "owner": "curious-student"
   }
 }
